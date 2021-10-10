@@ -11,14 +11,17 @@ double secantMethod(double (*f)(double), double a, double b, double epsilon) {
     if (f(a) * f(b) > 0)
         throw -1;
     double c = (a * f(b) - b * f(a)) / (f(b) - f(a));
-    while (b - a > epsilon) {
-
+    while (fabs(b - a) > epsilon) {
         if (f(a) * f(c) < 0) {
             b = c;
             c = (a * f(b) - b * f(a)) / (f(b) - f(a));
+            if (fabs(b - c) < epsilon)
+                break;
         } else if (f(b) * f(c) < 0){
             a = c;
             c = (a * f(b) - b * f(a)) / (f(b) - f(a));
+            if (fabs(a - c) < epsilon)
+                break;
         }
         else break;
     }
@@ -27,7 +30,7 @@ double secantMethod(double (*f)(double), double a, double b, double epsilon) {
 
 int main() {
     double a = 0;
-    double b = 0.7;
+    double b = 1;
     double epsilon = 1e-6;
 
     double x = secantMethod(f, a, b, epsilon);
