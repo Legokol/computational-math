@@ -1,41 +1,34 @@
 #include <iostream>
 #include <cmath>
+#include <array>
 
 using namespace std;
 
-double f(double x) {
-    return (x * x + pow(tan(x), 2) - 1);
+array<double, 2> f(const array<double, 2> &u) {
+    array<double, 2> res;
+    res[0] = u[0] * u[0] + u[1] * u[1] - 1;
+    res[1] = u[1] - tan(u[0]);
+    return res;
 }
 
-double secantMethod(double (*f)(double), double a, double b, double epsilon) {
-    if (f(a) * f(b) > 0)
-        throw -1;
-    double c = (a * f(b) - b * f(a)) / (f(b) - f(a));
-    while (fabs(b - a) > epsilon) {
-        if (f(a) * f(c) < 0) {
-            b = c;
-            c = (a * f(b) - b * f(a)) / (f(b) - f(a));
-            if (fabs(b - c) < epsilon)
-                break;
-        } else if (f(b) * f(c) < 0){
-            a = c;
-            c = (a * f(b) - b * f(a)) / (f(b) - f(a));
-            if (fabs(a - c) < epsilon)
-                break;
-        }
-        else break;
+array<double, 2> iterate(const array<double, 2> &u0, double epsilon) {
+    array<double, 2> u = u0;
+    array<double, 2> u_next = {atan(u[1]), sqrt(1 - u[0] * u[0])};
+    while (fabs(u_next[0] - u[0]) > epsilon || fabs(u_next[1] - u[1]) > epsilon) {
+        u = u_next;
+        u_next = {atan(u[1]), sqrt(1 - u[0] * u[0])};
     }
-    return c;
+
+    return u_next;
 }
 
 int main() {
-    double a = 0;
-    double b = 1;
     double epsilon = 1e-6;
+    array<double, 2> u0 = {0.5, 0.5};
+    //auto u = f(u0);
+    auto u = iterate(u0, epsilon);
 
-    double x = secantMethod(f, a, b, epsilon);
-    double y = tan(x);
-    cout << "(x1, y1) = " << x << ", " << y << endl;
-    cout << "(x2, y2) = " << -x << ", " << -y << endl;
+    cout << "(x1, y1) = " << u[0] << ", " << u[1] << endl;
+    cout << "(x2, y2) = " << -u[0] << ", " << -u[1] << endl;
     return 0;
 }
