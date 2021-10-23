@@ -25,7 +25,7 @@ double trapezoidalRule(int n, double a, double b) {
 }
 
 int main() {
-    std::cout << "Rectangle rule: " << rectangleRule(100000, 0, 3) << std::endl;
-    std::cout << "Trapezoidal rule: " << trapezoidalRule(40000, 0, 3) << std::endl;
+    std::cout << "Rectangle rule: " << rectangleRule(30000, 0, 3) << std::endl;
+    std::cout << "Trapezoidal rule: " << trapezoidalRule(30000, 0, 3) << std::endl;
     return 0;
 }
