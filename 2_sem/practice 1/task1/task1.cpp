@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <cmath>
 
@@ -14,50 +15,59 @@ struct Point {
 
 struct Solution {
     // Структура, описывающая сеточное решение
-    Point p;
+    Point point;
     double f;
 };
 
 class LeftAngle {
-private:
-    // Расчётная сетка
-    std::vector<std::vector<Point>> grid;
-
 public:
 
     std::vector<std::vector<Solution>> calc(double T, double L, double tau, double h) {
-        grid.resize(T / tau + 1);
-        std::vector<std::vector<Solution>> solution(grid.size());
+        int n_t = T / tau + 1;
+        int n_x = L / h + 1;
+        std::vector<std::vector<Solution>> solution(n_t);
 
-        grid[0].resize(L / h + 1);
-        solution[0].resize(grid[0].size());
-        for (int j = 0; j < grid[0].size(); ++j) {
-            // Задание начальных условий
-            grid[0][j].t = 0;
-            grid[0][j].x = h * j;
-            solution[0][j] = Solution{grid[0][j], sin(4 * M_PI * grid[0][j].x / L)};
+        solution[0].resize(n_x);
+        for (int j = 0; j < n_x; ++j) {
+            // Начальные условия
+            solution[0][j] = Solution{{0, j * h}, sin(4 * M_PI * (j * h) / L)};
         }
 
-        for (int i = 0; i < grid.size() - 1; ++i) {
-            grid[i + 1].resize(grid[i].size());
-            solution[i + 1].resize(solution[i].size());
-            for (int j = 1; j < grid[i].size(); ++j) {
-                solution[i + 1][j] = Solution{grid[i + 1][j],
-                                              solution[i][j].f + tau / h * (solution[i][j].f - solution[i][j - 1].f)};
+        for (int i = 0; i < n_t - 1; ++i) {
+            solution[i + 1].resize((n_x));
+            for (int j = 1; j < n_x; ++j) {
+                solution[i + 1][j] = Solution{{(i + 1) * tau, j * h},
+                                              solution[i][j].f - tau / h * (solution[i][j].f - solution[i][j - 1].f)};
             }
-            solution[i + 1][0] = Solution{grid[i + 1][0], solution[i + 1].back().f};
+            solution[i + 1][0] = Solution{{(i + 1) * tau, 0}, solution[i + 1].back().f};
         }
-
         return solution;
     }
 };
 
 int main() {
-    double T = 18;
-    double L = 20;
-    double tau = 1;
-    double h = 1;
+    double T = 18; // Временной интервал
+    double L = 20; // Пространственный интервал
+    double h = 0.5; // Шаг по пространству
+    // Числа Куранта
+    double cfl1 = 0.6;
+    double cfl2 = 1;
+    double cfl3 = 1.01;
+
     LeftAngle leftAngleSolver;
-    auto res = leftAngleSolver.calc(T, L, tau, h);
+    auto leftAngleSol1 = leftAngleSolver.calc(T, L, cfl1 * h, h);
+    auto leftAngleSol2 = leftAngleSolver.calc(T, L, cfl2 * h, h);
+    auto leftAngleSol3 = leftAngleSolver.calc(T, L, cfl3 * h, h);
+
+    /*std::ofstream writer;
+    writer.open("LeftAngle1.01.txt");
+    for (int i = 0; i < leftAngleSol3.size(); ++i) {
+        for (int j = 0; j < leftAngleSol3[i].size() - 1; ++j) {
+            writer << leftAngleSol3[i][j].f << ',';
+        }
+        writer << leftAngleSol3[i].back().f << std::endl;
+    }
+    writer.close();*/
+
     return 0;
 }
