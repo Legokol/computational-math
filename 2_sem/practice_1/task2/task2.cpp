@@ -89,7 +89,7 @@ int main() {
     }
 
 //    std::vector<std::ofstream> writer(4);
-//    writer[0].open("p.txt");
+//    writer[0].open("p.text");
 //    writer[1].open("rho.txt");
 //    writer[2].open("u.txt");
 //    writer[3].open("e.txt");
