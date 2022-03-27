@@ -44,7 +44,7 @@ def calc_w(w_left, w_right):
     u = 0.5 * (w_left[1] + w_right[1]) + 0.5 * (f_p(p, w_right) - f_p(p, w_left))
     if u >= 0:
         c_l = np.sqrt(gamma * w_left[2] / w_left[0])
-        if p >= w_left[2]:
+        if p > w_left[2]:
             s_l = w_left[1] - c_l * np.sqrt((gamma + 1) / 2 / gamma * p / w_left[2] + (gamma - 1) / 2 / gamma)
             if s_l >= 0:
                 return w_left
@@ -69,7 +69,7 @@ def calc_w(w_left, w_right):
                 return np.array([rho, u, p])
     else:
         c_r = np.sqrt(gamma * w_right[2] / w_right[0])
-        if p >= w_right[2]:
+        if p > w_right[2]:
             s_r = w_right[1] + c_r * np.sqrt(
                 (gamma + 1) / 2 / gamma * p / w_right[2] + (gamma - 1) / 2 / gamma)
             if s_r <= 0:
@@ -105,7 +105,7 @@ def w_to_u(w):
 
 
 # Шаги по пространству и времени
-h = 0.1
+h = 0.2
 tau = 1e-5
 
 solution = np.empty([1, int(2 * L / h), 4])
