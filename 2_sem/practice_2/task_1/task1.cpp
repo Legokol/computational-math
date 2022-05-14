@@ -57,12 +57,14 @@ int main() {
     double mu = 1e-3; // Вязкость жидкости
     double phi = 0.2; // Пористость пласта
     double cf = 10e-4 * 1e-5; // Сжимаемость жидкости
+    double rho0 = 1000; // Плотность жидкости
 
     double p0 = 100e5; // Начальное условие
     double pInj = 150e5; // Левое граничное условие
     double pProd = 50e5; // Правое граничное условие
 
-    double endTime = 10 * 24 * 3600; // Время остановки в секундах
+    double days = 10; // Время остановки в днях
+    double endTime = days * 24 * 3600; // Время остановки в секундах
 
     int M = 101; // Число узлов
 
@@ -76,5 +78,55 @@ int main() {
     for (int i = 0; i < M; ++i) {
         solution[0][i] = {t, i * h, p0};
     }
+    solution[0][0].p = pInj;
+    solution[0].back().p = pProd;
+
+    t += tau;
+    while (t <= endTime) {
+        // Заполнение матрицы СЛАУ
+        std::vector<double> a(M);
+        std::vector<double> b(M);
+        std::vector<double> c(M);
+        std::vector<double> d(M);
+
+        b[0] = 1;
+        c[0] = 0;
+        d[0] = pInj;
+
+        b.back() = 1;
+        a.back() = 0;
+        d.back() = pProd;
+
+        for (int i = 1; i < M - 1; ++i) {
+            double rhoLeft = approximateDensity(solution.back()[i - 1], solution.back()[i]);
+            double rhoRight = approximateDensity(solution.back()[i], solution.back()[i + 1]);
+
+            a[i] = rhoLeft * k / mu / (h * h);
+            c[i] = rhoRight * k / mu / (h * h);
+            b[i] = -a[i] - c[i] - phi * cf * rho0 / tau;
+            d[i] = -phi * cf * rho0 / tau * solution.back()[i].p;
+        }
+
+        std::vector<double> pressure = solveTriagonalSlae(a, b, c, d);
+        std::vector<Node> timeLayer(pressure.size());
+
+        for (int i = 0; i < M; ++i) {
+            timeLayer[i] = {t, i * h, pressure[i]};
+        }
+
+        solution.push_back(timeLayer);
+        t += tau;
+    }
+
+    std::ofstream writer;
+    writer.open("pressure.txt");
+    for (int i = 0; i < solution.size(); ++i) {
+        writer << solution[i][0].t << ' ';
+        for (int j = 0; j < solution[i].size(); ++j) {
+            writer << solution[i][j].p << ' ';
+        }
+        writer << '\n';
+    }
+
     return 0;
 }
